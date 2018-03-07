@@ -110,6 +110,16 @@
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array, isSorted, iterator) {
+    var results = [];
+    if (isSorted) {
+      results.push(array[0]);
+      for (var i = 1; i< array.length; i++) {
+        if (iterator(array[i]) !== iterator(array[i - 1])){
+          results.push(array[i]);
+        }
+      }
+      return results;
+    }
     return Array.from(new Set(array)).sort((a, b) => a - b);
   };
 
@@ -174,21 +184,41 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    
-    if (accumulator === undefined) {
-      accumulator = collection[0];
-      for (var i = 1; i < collection.length; i++) {
-        accumulator = iterator(accumulator, collection[i]);
+    if (Array.isArray(collection))
+      if (accumulator === undefined) {
+        accumulator = collection[0];
+        for (var i = 1; i < collection.length; i++) {
+          accumulator = iterator(accumulator, collection[i]);
+        }
+      } else {
+        for (var i = 0; i < collection.length; i++) {
+          accumulator = iterator(accumulator, collection[i]);
+        }
+
+        // accumulator = accumulator;
+        // _.each(collection, function(accumulator, item) {
+        //   accumulator = iterator(accumulator, item);
+        // });
       }
-    } else {
-      for (var i = 0; i < collection.length; i++) {
-        accumulator = iterator(accumulator, collection[i]);
+    else {
+      var keys = Object.keys(collection)
+      if (accumulator === undefined) {
+        accumulator = collection[keys[0]];
+        for (var i = 1; i < keys.length; i++) {
+          accumulator = iterator(accumulator, collection[keys[i]]);
+        }
+      } else {
+        for (var i = 0; i < keys.length; i++) {
+          accumulator = iterator(accumulator, collection[keys[i]]);;
+        }
+
+        // accumulator = accumulator;
+        // _.each(collection, function(accumulator, item) {
+        //   accumulator = iterator(accumulator, item);
+        // });
       }
 
-      // accumulator = accumulator;
-      // _.each(collection, function(accumulator, item) {
-      //   accumulator = iterator(accumulator, item);
-      // });
+
     }
     return accumulator;
   };
@@ -338,6 +368,29 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var results = {};
+    return function(key) {
+      var arg = [...arguments];
+        if (results[key] !== undefined) {
+          return results[key];
+        } else {
+          results[arg] = func.apply(this, arg);
+          return results[arg];
+        }
+      }
+    // var alreadyCalled = false;
+    // var result ={};
+    // var value;
+    // return function() {
+    //   if (!alreadyCalled) {
+    //     value = func.apply(this, arguments);
+    //     alreadyCalled = true;
+    //     results[arguments] = value;
+    //     return value;
+    //   } else {
+    //     return results[arguments]
+    //   }
+    // }; 
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -347,6 +400,8 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var args = Array.from(arguments).slice(2);
+    return setTimeout(function() {func.apply(this, args)}, wait);
   };
 
 
@@ -361,7 +416,22 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
-  };
+    var newArray = array.slice();
+    var result =[];
+    while (newArray.length !=0 ) {
+      var index = Math.floor(Math.random() * newArray.length)
+      result.push(newArray[index])
+      newArray.splice(index,1)
+    }
+    return result;
+
+
+
+    // for (var i = 0; i < array.length; i++) {
+    // var randomIndex = Math.floor(Math.random * i);
+    //var tempValue = shuffledArray[randomIndex];
+    //var newIndex = tempValue
+};
 
 
   /**
